@@ -16,18 +16,18 @@ const FIREBASE_JWKS_URL = 'https://www.googleapis.com/robot/v1/metadata/x509/sec
 
 // CORS headers for all responses
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  'Access-Control-Max-Age': '86400',
+	'Access-Control-Allow-Origin': '*',
+	'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+	'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+	'Access-Control-Max-Age': '86400',
 };
 
 // Helper function to handle CORS preflight requests
 function handleOptions(request) {
-  return new Response(null, {
-    headers: corsHeaders,
-    status: 204,
-  });
+	return new Response(null, {
+		headers: corsHeaders,
+		status: 204,
+	});
 }
 
 async function verifyFirebaseToken(authHeader, env) {
