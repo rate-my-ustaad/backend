@@ -12,5 +12,8 @@
 		"@cloudflare/vitest-pool-workers": "^0.8.19",
 		"vitest": "~3.0.7",
 		"wrangler": "^4.15.2"
+	},
+	"dependencies": {
+		"firebase-firestore-lite": "^1.0.3"
 	}
 }

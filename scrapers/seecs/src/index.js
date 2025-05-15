@@ -2,9 +2,12 @@
  * SEECS Faculty Scraper
  *
  * - Scrapes faculty names from SEECS NUST website
+ * - Stores faculty data in Firestore
  * - Run `npm run dev` in your terminal to start a development server
  * - Run `npm run deploy` to publish your worker
  */
+
+import { Database } from 'firebase-firestore-lite';
 
 export default {
 	async fetch(request, env, ctx) {
@@ -19,17 +22,16 @@ export default {
 				'Connection': 'keep-alive',
 				'Upgrade-Insecure-Requests': '1'
 			};
-			
+
 			// Fetch the faculty page with browser-like headers
-			const response = await fetch('https://seecs.nust.edu.pk/faculty/', { 
+			const response = await fetch('https://seecs.nust.edu.pk/faculty/', {
 				headers,
 				cf: {
-					// Bypass Cloudflare protection using tls_client_auth
 					cacheTtl: 0,
 					cacheEverything: false
-				} 
+				}
 			});
-			
+
 			if (!response.ok) {
 				throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
 			}
@@ -54,7 +56,7 @@ export default {
 				if (name && !seenNames.has(name)) {
 					// Add name to seen set
 					seenNames.add(name);
-					
+
 					// Convert name to capital case (first letter of each word capitalized)
 					const capitalizedName = name.split(' ')
 						.map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -71,10 +73,52 @@ export default {
 			// Count faculty members
 			const count = facultyData.length;
 
+			// Initialize Firestore Database with project ID
+			const db = new Database({
+				projectId: "rate-my-ustaad",
+				// Optional auth configuration if needed
+				// auth: {
+				// 	apiKey: env.FIREBASE_API_KEY
+				// }
+			});
+
+			// Get a reference to the faculty collection
+			const facultyCollection = db.ref('faculty');
+
+			// Create a transaction for batch operations
+			const tx = db.transaction();
+			let firestoreResults = [];
+
+			for (const faculty of facultyData) {
+				// Create a document ID from the faculty name (converted to lowercase and spaces replaced with hyphens)
+				const docId = faculty.name.toLowerCase().replace(/\s+/g, '-');
+
+				// Add document to transaction
+				tx.set(`faculty/${docId}`, {
+					...faculty,
+					updatedAt: new Date().toISOString()
+				});
+
+				firestoreResults.push({
+					id: docId,
+					...faculty
+				});
+			}
+
+			// Commit the transaction
+			try {
+				await tx.commit();
+				console.log(`Successfully stored ${count} faculty members in Firestore`);
+			} catch (firestoreError) {
+				console.error('Firestore error:', firestoreError);
+				// Continue execution to return scraped data even if Firestore update fails
+			}
+
 			// Create result object
 			const result = {
 				totalFaculty: count,
-				faculty: facultyData,
+				faculty: firestoreResults.length > 0 ? firestoreResults : facultyData,
+				storedInFirestore: firestoreResults.length > 0,
 				scrapedAt: new Date().toISOString()
 			};
 
