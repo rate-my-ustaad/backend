@@ -42,6 +42,25 @@ async function getAllDocuments(collectionRef) {
 export default {
 	async fetch(request, env, ctx) {
 		try {
+			// Check authorization token
+			const authHeader = request.headers.get('Authorization');
+			if (!authHeader || !authHeader.startsWith('Bearer ')) {
+				return new Response(JSON.stringify({ error: 'Authorization header missing or invalid format' }), {
+					status: 401,
+					headers: { 'Content-Type': 'application/json' }
+				});
+			}
+			
+			const token = authHeader.replace('Bearer ', '');
+			const secretToken = await env.SCRAPERS_AUTH_TOKEN.get();
+			
+			if (token !== secretToken) {
+				return new Response(JSON.stringify({ error: 'Invalid authorization token' }), {
+					status: 403,
+					headers: { 'Content-Type': 'application/json' }
+				});
+			}
+
 			// Add browser-like headers to prevent 403 Forbidden errors
 			const headers = {
 				'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',

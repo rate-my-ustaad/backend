@@ -9,7 +9,14 @@
 	"compatibility_date": "2025-05-17",
 	"observability": {
 		"enabled": true
-	}
+	},
+	"secrets_store_secrets": [
+		{
+			"binding": "SCRAPERS_AUTH_TOKEN",
+			"store_id": "1a8ed817f0754248b6c85675ce3f8a6d",
+			"secret_name": "SCRAPERS_AUTH_TOKEN"
+		}
+	]
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

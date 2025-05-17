@@ -1,0 +1,59 @@
+name: Run Faculty Scrapers
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for running the scraper'
+        required: false
+        default: 'Manual trigger'
+        type: string
+
+jobs:
+  run-scrapers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run SADA scraper
+        run: |
+          curl -X GET https://sada.ratemyustaaddev.workers.dev/ \
+            -H "Authorization: Bearer ${{ secrets.SCRAPERS_AUTH_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --fail
+      
+      - name: Run ASAB scraper
+        run: |
+          curl -X GET https://asab.ratemyustaaddev.workers.dev/ \
+            -H "Authorization: Bearer ${{ secrets.SCRAPERS_AUTH_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --fail
+      
+      - name: Run SMME scraper
+        run: |
+          curl -X GET https://smme.ratemyustaaddev.workers.dev/ \
+            -H "Authorization: Bearer ${{ secrets.SCRAPERS_AUTH_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --fail
+      
+      - name: Run SEECS scraper
+        run: |
+          curl -X GET https://seecs.ratemyustaaddev.workers.dev/ \
+            -H "Authorization: Bearer ${{ secrets.SCRAPERS_AUTH_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --fail
+      
+      - name: Run MCS scraper
+        run: |
+          curl -X GET https://mcs.ratemyustaaddev.workers.dev/ \
+            -H "Authorization: Bearer ${{ secrets.SCRAPERS_AUTH_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --fail
+      
+      - name: Run GIKI-EE scraper
+        run: |
+          curl -X GET https://giki-ee.ratemyustaaddev.workers.dev/ \
+            -H "Authorization: Bearer ${{ secrets.SCRAPERS_AUTH_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --fail
