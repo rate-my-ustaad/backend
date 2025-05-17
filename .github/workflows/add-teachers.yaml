@@ -8,6 +8,16 @@ on:
         required: false
         default: 'Manual trigger'
         type: string
+      skipExistingChecks:
+        description: 'Skip checking for existing documents (faster but might create duplicates)'
+        required: false
+        default: false
+        type: boolean
+      firestoreProjectId:
+        description: 'Firestore project ID (defaults to rate-my-ustaad if not specified)'
+        required: false
+        default: 'rate-my-ustaad'
+        type: string
 
 jobs:
   run-scrapers:
@@ -21,6 +31,8 @@ jobs:
           curl -X GET https://sada.ratemyustaaddev.workers.dev/ \
             -H "Authorization: Bearer ${{ secrets.SCRAPERS_AUTH_TOKEN }}" \
             -H "Content-Type: application/json" \
+            -H "X-Skip-Existing-Checks: ${{ inputs.skipExistingChecks }}" \
+            -H "X-Firestore-Project-ID: ${{ inputs.firestoreProjectId }}" \
             --fail
       
       - name: Run ASAB scraper
@@ -28,6 +40,8 @@ jobs:
           curl -X GET https://asab.ratemyustaaddev.workers.dev/ \
             -H "Authorization: Bearer ${{ secrets.SCRAPERS_AUTH_TOKEN }}" \
             -H "Content-Type: application/json" \
+            -H "X-Skip-Existing-Checks: ${{ inputs.skipExistingChecks }}" \
+            -H "X-Firestore-Project-ID: ${{ inputs.firestoreProjectId }}" \
             --fail
       
       - name: Run SMME scraper
@@ -35,6 +49,8 @@ jobs:
           curl -X GET https://smme.ratemyustaaddev.workers.dev/ \
             -H "Authorization: Bearer ${{ secrets.SCRAPERS_AUTH_TOKEN }}" \
             -H "Content-Type: application/json" \
+            -H "X-Skip-Existing-Checks: ${{ inputs.skipExistingChecks }}" \
+            -H "X-Firestore-Project-ID: ${{ inputs.firestoreProjectId }}" \
             --fail
       
       - name: Run SEECS scraper
@@ -42,6 +58,8 @@ jobs:
           curl -X GET https://seecs.ratemyustaaddev.workers.dev/ \
             -H "Authorization: Bearer ${{ secrets.SCRAPERS_AUTH_TOKEN }}" \
             -H "Content-Type: application/json" \
+            -H "X-Skip-Existing-Checks: ${{ inputs.skipExistingChecks }}" \
+            -H "X-Firestore-Project-ID: ${{ inputs.firestoreProjectId }}" \
             --fail
       
       - name: Run MCS scraper
@@ -49,6 +67,8 @@ jobs:
           curl -X GET https://mcs.ratemyustaaddev.workers.dev/ \
             -H "Authorization: Bearer ${{ secrets.SCRAPERS_AUTH_TOKEN }}" \
             -H "Content-Type: application/json" \
+            -H "X-Skip-Existing-Checks: ${{ inputs.skipExistingChecks }}" \
+            -H "X-Firestore-Project-ID: ${{ inputs.firestoreProjectId }}" \
             --fail
       
       - name: Run GIKI-EE scraper
@@ -56,4 +76,6 @@ jobs:
           curl -X GET https://giki-ee.ratemyustaaddev.workers.dev/ \
             -H "Authorization: Bearer ${{ secrets.SCRAPERS_AUTH_TOKEN }}" \
             -H "Content-Type: application/json" \
+            -H "X-Skip-Existing-Checks: ${{ inputs.skipExistingChecks }}" \
+            -H "X-Firestore-Project-ID: ${{ inputs.firestoreProjectId }}" \
             --fail

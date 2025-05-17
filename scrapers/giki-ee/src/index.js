@@ -60,6 +60,12 @@ export default {
 					headers: { 'Content-Type': 'application/json' }
 				});
 			}
+			
+			// Check if document checks should be skipped
+			const skipExistingChecks = request.headers.get('X-Skip-Existing-Checks') === 'true';
+			
+			// Get the Firestore project ID from header or use default
+			const projectId = request.headers.get('X-Firestore-Project-ID') || "rate-my-ustaad";
 
 			// Original scraper code starts here
 			// Add browser-like headers to prevent 403 Forbidden errors
@@ -137,23 +143,30 @@ export default {
 
 			// Initialize Firestore Database with project ID
 			const db = new Database({
-				projectId: "rate-my-ustaad",
+				projectId: projectId,
 			});
 
 			// Get a reference to the faculty collection
 			const facultyCollection = db.ref('teachers');
 
-			// Get all existing faculty documents
-			console.log("Fetching all existing faculty documents...");
-			const existingFaculty = await getAllDocuments(facultyCollection);
-			console.log(`Retrieved ${existingFaculty.length} total faculty documents`);
-
 			// Create a map of existing faculty by name for quick lookups
 			const existingFacultyMap = {};
-			for (const doc of existingFaculty) {
-				// Use document ID as the key
-				const docId = doc.__meta__.id;
-				existingFacultyMap[docId] = doc;
+			
+			// Only fetch existing documents if we're not skipping checks
+			if (!skipExistingChecks) {
+				// Get all existing faculty documents
+				console.log(`Fetching existing faculty documents from project: ${projectId}...`);
+				const existingFaculty = await getAllDocuments(facultyCollection);
+				console.log(`Retrieved ${existingFaculty.length} total faculty documents`);
+
+				// Create a map of existing faculty by name for quick lookups
+				for (const doc of existingFaculty) {
+					// Use document ID as the key
+					const docId = doc.__meta__.id;
+					existingFacultyMap[docId] = doc;
+				}
+			} else {
+				console.log("Skipping checks for existing documents as requested via header");
 			}
 
 			// Create a transaction for batch operations
@@ -167,8 +180,8 @@ export default {
 				// Format: name_institution_department (all lowercase with spaces replaced by underscores)
 				const docId = `${faculty.name.toLowerCase().replace(/\s+/g, '_')}_${faculty.institution.toLowerCase()}_${faculty.department.toLowerCase()}`;
 
-				// Check if document already exists in our map
-				if (existingFacultyMap[docId]) {
+				// Check if document already exists in our map (only if not skipping checks)
+				if (!skipExistingChecks && existingFacultyMap[docId]) {
 					console.log(`Skipping existing document: ${docId}`);
 					skippedDocuments.push({
 						id: docId,
@@ -176,7 +189,7 @@ export default {
 					});
 					continue;
 				}
-				// Document doesn't exist, add it to the transaction
+				// Document doesn't exist or we're skipping checks, add it to the transaction
 				try {
 					tx.set(`teachers/${docId}`, faculty);
 
@@ -212,7 +225,9 @@ export default {
 				totalFaculty: count,
 				addedFaculty: firestoreResults,
 				skippedExisting: skippedDocuments,
-				existingFacultyCount: existingFaculty.length,
+				skipExistingChecks: skipExistingChecks,
+				firestoreProjectId: projectId,
+				existingFacultyCount: skipExistingChecks ? 'unknown (checks skipped)' : Object.keys(existingFacultyMap).length,
 				storedInFirestore: firestoreResults.length > 0,
 				scrapedAt: new Date().toISOString()
 			};
